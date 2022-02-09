@@ -1,0 +1,157 @@
+﻿@{
+    Layout = "";
+}
+@model List<BookUserModel>
+
+
+<div class="row">
+    <div class="col-md-12">
+        <input class="search form-control" id="searchInput" onkeyup="Search()" placeholder="Search for book name.." />
+    </div>
+</div>
+
+<ol class="list-group list-group-numbered" id="searchOL">
+    @foreach (var bookUser in Model)
+    {
+        <li class="list-group-item d-flex justify-content-between align-items-start">
+            <div class="ms-2 me-auto">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/50/Closed_Book_Icon.svg/2048px-Closed_Book_Icon.svg.png" class="float-left photo">
+                <div class="float-left">
+                    <h5>@bookUser.Book.title</h5>
+                    <div class="name">@bookUser.Book.author</div>
+                    <div style="max-width:800px">@bookUser.Book.description</div>
+                    <div>@bookUser.Book.price $</div>
+                    @if (bookUser.UserId !="0" && bookUser.UserId != User.FindFirst(System.Security.Claims.ClaimTypes.Sid).Value)
+                    {
+                        <div class="text-danger">@bookUser.Username borrowed the book.</div>
+                    }
+                </div>
+            </div>
+            @if (bookUser.UserId == "0")
+            {
+                <div id="BarrowBook">
+                    <button type="button" id="@bookUser.Book.id" onclick="BarrowBook('@bookUser.Book.id')" class="btn btn-primary btn-book">Barrow Book &nbsp; <i class="fa fa-chevron-circle-right" aria-hidden="true"></i></button>
+                </div>
+            }
+            else if (bookUser.UserId == User.FindFirst(System.Security.Claims.ClaimTypes.Sid).Value)
+            {
+                <div id="ReturnBook">
+                    <button type="button" id="@bookUser.Book.id" onclick="ReturnBook('@bookUser.Book.id')" class="btn btn-success btn-book">Return Book &nbsp; <i class="fa fa-chevron-circle-right" aria-hidden="true"></i></button>
+                </div>
+            }
+            else if (bookUser.UserId != User.FindFirst(System.Security.Claims.ClaimTypes.Sid).Value)
+            {
+                <div id="NotAvailable">
+                    <button type="button" id="@bookUser.Book.id" class="btn btn-danger btn-book" disabled>Not Available &nbsp; <i class="fa fa-chevron-circle-right" aria-hidden="true"></i></button>
+                </div>
+            }
+
+        </li>
+    }
+</ol>
+<script language="javascript" type="text/javascript">
+
+    function RefreshBookList() {
+        $.ajax({
+            url: "/Home/_List",
+            type: "GET",
+        })
+            .done(function (partialViewResult) {
+                debugger;
+                $("#bookList").html(partialViewResult);
+            });
+    }
+
+    function BarrowBook(selectedBook) {
+
+        $.ajax({
+            url: '/Home/BarrowBook?bookId=' + selectedBook,
+            type: 'POST',
+            cache: false,
+            dataType: 'json',
+            contentType: 'application/json; charset=utf-8',
+            success: function (result) {
+                RefreshBookList();
+            },
+            error: function (result) {
+            }
+        });
+    }
+
+    function ReturnBook(selectedBook) {
+
+        $.ajax({
+            url: '/Home/ReturnBook?bookId=' + selectedBook,
+            type: 'POST',
+            cache: false,
+            dataType: 'json',
+            contentType: 'application/json; charset=utf-8',
+            success: function (result) {
+                RefreshBookList();
+            },
+            error: function (result) {
+            }
+        });
+    }
+
+    function Search() {
+        // Declare variables
+        var input, filter, ol, li, h5, i, txtValue;
+        input = document.getElementById('searchInput');
+        filter = input.value.toUpperCase();
+        ol = document.getElementById("searchOL");
+        li = ol.getElementsByTagName('li');
+
+        // Loop through all list items, and hide those who don't match the search query
+        for (i = 0; i < li.length; i++) {
+            h5 = li[i].getElementsByTagName("h5")[0];
+            txtValue = h5.textContent || h5.innerText;
+            if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                li[i].style.display = "";
+                li[i].classList.remove("search-display-none");
+            } else {
+                li[i].classList.add("search-display-none");
+            }
+        }
+    }
+</script>
+<style>
+    .search-display-none
+    {
+        display : none !important;
+    }
+    body {
+        font-family: 'Source Sans Pro', sans-serif;
+    }
+
+    h1 {
+        text-align: center;
+    }
+
+    .row {
+        margin-top: 10px;
+        margin-bottom: 10px;
+    }
+
+    .photo {
+        border-radius: 45px;
+        margin-right: 20px;
+        width: 90px;
+        height: 90px
+    }
+
+    .form-control {
+        width: 30%;
+        display: inline-block;
+        margin-right: 10px;
+    }
+
+    .name {
+        font-weight: 700;
+    }
+
+    .btn-book {
+        margin-top: 10px;
+        width: 100%
+    }
+</style>
