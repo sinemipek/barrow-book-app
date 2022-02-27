@@ -8,7 +8,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using BarrowBookApp.Models;
 using BarrowBookApp.Services;
-using BarrowBookApp.Services;
 using System.Security.Claims;
 using System.Threading;
 
@@ -28,7 +27,6 @@ namespace BarrowBookApp.Controllers
         [Authorize]
         public IActionResult Index()
         {
-            //  DeSerialize a param olarak modeli de geçir generic olsun
             var bookUserList = GetBookUserList();
             return View(bookUserList);
         }
